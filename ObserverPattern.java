@@ -1,76 +1,103 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package ofline2B;
-
-
 
 import java.util.ArrayList;
 import java.util.List;
 
-class Observer {
-    String information;
-    public void update(String str) {
-        information=str;
-        System.out.println("New Information is : "+information);
+interface IObserver {
+
+    void update(String s);
+}
+
+class Student implements IObserver {
+
+    @Override
+    public void update(String i) {
+        System.out.println("Student: myValue in Subject is now: " + i);
     }
 }
 
+class ClassRepresentative implements IObserver {
 
-
-class Subject implements ISubject {
-
-    List<Observer> observerList = new ArrayList<Observer>();
     private String inform;
 
-    public String getFlag() {
-        return inform;
+    private Software s;
+
+    ClassRepresentative(Software s) {
+        this.s = s;
     }
 
-    public void setFlag(String inform) {
-        this.inform = inform;
-//flag value changed .So notify observer(s)
-        notifyObservers(inform);
-    }
-
-    @Override
-    public void register(Observer o) {
-        observerList.add(o);
+    public void informOthers(String i) {
+        s.setMyValue(i);
     }
 
     @Override
-    public void unregister(Observer o) {
-        observerList.remove(o);
+    public void update(String i) {
+        System.out.println("ClassRepresentative: observes ->myValue is changed in Subject to :" + i);
     }
-
-    @Override
-    public void notifyObservers(String s) {
-        for (int i = 0; i < observerList.size(); i++) {
-            observerList.get(i).update(s);
-        }
-    }
-
-  
 }
 
-class ObserverPattern {
+interface ISoftware {
+
+    void subscribe(IObserver o);
+
+    void unsubscribe(IObserver o);
+
+    void notifyObservers(String i);
+}
+
+class Software implements ISoftware {
+
+    private String myValue;
+
+    public String getMyValue() {
+        return myValue;
+    }
+
+    public void setMyValue(String myValue) {
+        this.myValue = myValue;
+//Notify observers
+        notifyObservers(myValue);
+    }
+
+    List<IObserver> observersList = new ArrayList<IObserver>();
+
+    @Override
+    public void subscribe(IObserver o) {
+        observersList.add(o);
+    }
+
+    @Override
+    public void unsubscribe(IObserver o) {
+        observersList.remove(o);
+    }
+
+    @Override
+    public void notifyObservers(String updatedValue) {
+        for (int i = 0; i < observersList.size(); i++) {
+            observersList.get(i).update(updatedValue);
+        }
+    }
+}
+
+class ObserverPatternModifiedEx {
 
     public static void main(String[] args) {
-        System.out.println("***CTRObserver Pattern Demo***\n");
-        Observer o1 = new Observer();
-        Subject sub1 = new Subject();
-        sub1.register(o1);
-        String information="Class will start in 23 June :(";
-        System.out.println(information);
-        sub1.setFlag(information);
-       // System.out.println("Setting Flag = 25 ");
-       information="SE offline have to submit within 23 June 11pm";
-        sub1.setFlag(information);
-        sub1.unregister(o1);
-//No notification this time to o1 .Since it is unregistered.
-        information="Hello!!! due to World Cup auto is comming";
-        sub1.setFlag(information);
+        System.out.println("*** Modified Observer Pattern Demo***\n");
+        Software sub = new Software();
+        Student ob1 = new Student();
+        ClassRepresentative ob2 = new ClassRepresentative(sub);
+        sub.subscribe(ob1);
+        sub.subscribe(ob2);
+           String information="Class will start in 23 June :(";
+        ob2.informOthers(information);
+        System.out.println();
+         information="SE offline have to submit within 23 June 11pm";
+        ob2.informOthers(information);
+        System.out.println();
+//unsubscribe ob1 only
+        sub.unsubscribe(ob1);
+          information="Hello!!! due to World Cup auto is comming";
+//Now only ob2 will observe the change
+        ob2.informOthers(information);
     }
 }
